@@ -1,5 +1,5 @@
-from core.job_search import search_linkedin_jobs, extract_company_site
-from utils.file_utils import load_config
+from playwright.sync_api import sync_playwright
+from core.job_search import get_logged_in_context, get_external_apply_jobs, visit_and_extract_apply_links
 import logging
 import os
 
@@ -14,32 +14,31 @@ def main():
     logging.info("🚀 Job Application Bot Started")
     print("[🚀] Job Application Bot Starting...\n")
 
-    config = load_config()
-    keywords = config.get("keywords", "Software Engineer")
-    location = config.get("location", "Remote")
-    pages = config.get("scroll_pages", 2)
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=False, slow_mo=250)
+        context = get_logged_in_context(browser)
+        page = context.new_page()
 
-    # Step 1: Search LinkedIn Jobs and filter for external Apply
-    print("[🔎] Searching LinkedIn for external Apply jobs...")
-    external_jobs = search_linkedin_jobs(keywords, location, pages)
+        print("[🔍] Searching LinkedIn for jobs with external Apply buttons...\n")
+        job_urls = get_external_apply_jobs(page)
 
-    if not external_jobs:
-        print("[⚠️] No external apply jobs found.")
-        return
+        if not job_urls:
+            print("[⚠️] No valid external apply jobs found.")
+            return
 
-    print(f"\n--- Found {len(external_jobs)} External Apply Jobs ---")
-    for url in external_jobs:
-        print(url)
+        print(f"\n--- Found {len(job_urls)} Jobs ---")
+        for url in job_urls:
+            print(url)
 
-    # Step 2: Extract final company application pages
-    print("\n[🌐] Extracting final company application links...")
-    final_links = extract_company_site(external_jobs)
+        print("\n[🌐] Visiting each job page to extract external company links...\n")
+        final_links = visit_and_extract_apply_links(context, job_urls)
 
-    print(f"\n--- Final External Application Links ({len(final_links)} total) ---")
-    for link in final_links:
-        print(link)
+        print(f"\n--- Final External Application Links ({len(final_links)} total) ---")
+        for link in final_links:
+            print(link)
 
-    logging.info("✅ Job Application Bot Finished")
+        logging.info("✅ Job Application Bot Finished")
+        browser.close()
 
 if __name__ == "__main__":
     main()

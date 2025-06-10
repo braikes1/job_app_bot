@@ -1,9 +1,10 @@
-from playwright.sync_api import sync_playwright, TimeoutError
-from pathlib import Path
+from playwright.sync_api import Page, BrowserContext, TimeoutError
 import time
 import json
+from pathlib import Path
 
 SESSION_FILE = Path("data/linkedin_session.json")
+
 
 def get_logged_in_context(browser):
     if SESSION_FILE.exists():
@@ -20,112 +21,94 @@ def get_logged_in_context(browser):
         print("[💾] Session saved for future use")
     return context
 
-def search_linkedin_jobs(keywords, location="Remote", pages=2, custom_url=None):
-    job_links = []
 
-    with sync_playwright() as p:
-        browser = p.chromium.launch(headless=False, slow_mo=250)
-        context = get_logged_in_context(browser)
-        page = context.new_page()
+def get_external_apply_jobs(page: Page, max_scrolls=5):
+    external_jobs = []
 
-        search_url = custom_url or f"https://www.linkedin.com/jobs/search/?keywords={keywords}&location={location}&f_AL=false"
-        page.goto(search_url)
-        page.wait_for_timeout(5000)
+    page.goto("https://www.linkedin.com/jobs/search/?keywords=Software%20Engineer%20remote")
+    page.wait_for_timeout(5000)
 
-        print("[⬇️] Scrolling to load job results...")
-        for _ in range(pages):
-            page.mouse.wheel(0, 5000)
-            page.wait_for_timeout(3000)
+    seen = 0
+    scroll_attempts = 0
 
-        print("[📌] Finding all job cards...")
+    while scroll_attempts < max_scrolls:
         job_cards = page.locator("div.job-card-container--clickable")
-        count = job_cards.count()
-        print(f"[📋] Found {count} job cards")
+        total = job_cards.count()
+        print(f"[📋] Job cards found: {total} (seen: {seen})")
 
-        for i in range(count):
+        if total == seen:
+            print("[↕️] Scrolling down...")
+            page.mouse.wheel(0, 4000)
+            scroll_attempts += 1
+            time.sleep(3)
+            continue
+
+        for i in range(seen, total):
             try:
+                job_card = job_cards.nth(i)
                 print(f"[🖱️] Clicking job card {i + 1}...")
-                job_cards.nth(i).click(force=True)
-                time.sleep(7)
+                job_card.click(force=True)
+                time.sleep(5)
 
                 apply_btn = page.locator('button.jobs-apply-button:has-text("Apply")').first
-
                 if apply_btn and apply_btn.is_visible():
-                    button_text = apply_btn.inner_text().strip().lower()
-                    if "easy" not in button_text:
-                        print("[🚀] External Apply detected — clicking now...")
-                        with context.expect_page() as new_tab:
-                            apply_btn.click()
-                        new_page = new_tab.value
-                        new_page.wait_for_timeout(3000)
-
-                        external_url = new_page.url
-                        if "linkedin.com" not in external_url:
-                            job_links.append(external_url)
-                            print(f"[🌍] Navigated to: {external_url}")
-                        else:
-                            print("[↩️] Link was still on LinkedIn — skipping")
-
-                        new_page.close()
-                    else:
-                        print("[⛔] Easy Apply detected — skipped")
-                else:
-                    print("[❌] No Apply button")
-
-            except Exception as e:
-                print(f"[❗] Error on job {i + 1}: {e}")
-                continue
-
-        browser.close()
-    return list(set(job_links))
-
-def extract_company_site(linkedin_job_urls):
-    company_sites = []
-
-    with sync_playwright() as p:
-        browser = p.chromium.launch(headless=False)
-        context = get_logged_in_context(browser)
-        main_page = context.new_page()
-
-        for job_url in linkedin_job_urls:
-            try:
-                print(f"\n[🌐] Visiting job: {job_url}")
-                main_page.goto(job_url, timeout=20000)
-                main_page.wait_for_timeout(3000)
-
-                apply_btn = main_page.locator('button.jobs-apply-button:has-text("Apply")').first
-
-                if apply_btn and apply_btn.is_visible():
-                    button_text = apply_btn.inner_text().strip().lower()
-                    if "easy" not in button_text:
-                        with context.expect_page() as new_tab:
-                            apply_btn.click()
-                        time.sleep(7)
-
-                        new_page = new_tab.value
-                        new_page.wait_for_timeout(3000)
-
-                        external_url = new_page.url
-                        if "linkedin.com" not in external_url:
-                            company_sites.append(external_url)
-                            print(f"[🌍] External company site: {external_url}")
-                        else:
-                            print("[↩️] Still on LinkedIn — skipped")
-
-                        new_page.close()
+                    btn_text = apply_btn.inner_text().strip().lower()
+                    if "easy" not in btn_text:
+                        job_url = page.url
+                        external_jobs.append(job_url)
+                        print(f"[✅] External job saved: {job_url}")
                     else:
                         print("[⛔] Easy Apply detected — skipped")
                 else:
                     print("[❌] No Apply button found")
 
-                time.sleep(1)
-
-            except TimeoutError:
-                print(f"[⏳] Timeout visiting: {job_url}")
-                continue
             except Exception as e:
-                print(f"[❗] Error: {e}")
+                print(f"[⚠️] Error on job {i + 1}: {e}")
                 continue
 
-        browser.close()
-    return company_sites
+        seen = total
+        scroll_attempts = 0  # reset if new jobs found
+
+    return list(set(external_jobs))
+
+
+def visit_and_extract_apply_links(context: BrowserContext, linkedin_urls):
+    apply_links = []
+    page = context.new_page()
+
+    for idx, url in enumerate(linkedin_urls):
+        try:
+            print(f"\n[🌐] Visiting job {idx + 1}: {url}")
+            page.goto(url, timeout=20000)
+            page.wait_for_timeout(3000)
+
+            apply_btn = page.locator('button.jobs-apply-button:has-text("Apply")').first
+            if apply_btn and apply_btn.is_visible():
+                btn_text = apply_btn.inner_text().strip().lower()
+                if "easy" not in btn_text:
+                    with context.expect_page() as new_tab:
+                        apply_btn.click()
+                    time.sleep(6)
+                    new_page = new_tab.value
+                    new_page.wait_for_timeout(3000)
+
+                    external_url = new_page.url
+                    if "linkedin.com" not in external_url:
+                        print(f"[🌍] External site: {external_url}")
+                        apply_links.append(external_url)
+                    else:
+                        print("[↩️] Still on LinkedIn — skipped")
+
+                    new_page.close()
+                else:
+                    print("[⛔] Easy Apply detected — skipped")
+            else:
+                print("[❌] No Apply button")
+
+        except TimeoutError:
+            print(f"[⏳] Timeout on job: {url}")
+        except Exception as e:
+            print(f"[❗] Error: {e}")
+
+    page.close()
+    return list(set(apply_links))
