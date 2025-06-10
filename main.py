@@ -1,5 +1,4 @@
-from core.job_search import run_job_search
-from core.auto_apply import run_auto_apply
+from core.job_search import search_linkedin_jobs, extract_company_site
 from utils.file_utils import load_config
 import logging
 import os
@@ -12,24 +11,35 @@ logging.basicConfig(
 )
 
 def main():
-    logging.info("Job Application Bot Started")
+    logging.info("🚀 Job Application Bot Started")
+    print("[🚀] Job Application Bot Starting...\n")
 
     config = load_config()
+    keywords = config.get("keywords", "Software Engineer")
+    location = config.get("location", "Remote")
+    pages = config.get("scroll_pages", 2)
 
-    # ✅ Run search and fallback to [] if something fails
-    job_listings = run_job_search(config) or []
+    # Step 1: Search LinkedIn Jobs and filter for external Apply
+    print("[🔎] Searching LinkedIn for external Apply jobs...")
+    external_jobs = search_linkedin_jobs(keywords, location, pages)
 
-    print(f"\n--- Found {len(job_listings)} Jobs ---")
-    for job in job_listings:
-        print(job)
+    if not external_jobs:
+        print("[⚠️] No external apply jobs found.")
+        return
 
-    # ✅ Proceed to apply if jobs exist
-    if job_listings:
-        run_auto_apply(job_listings, config)
-    else:
-        print("[⚠️] No jobs found to apply to.")
+    print(f"\n--- Found {len(external_jobs)} External Apply Jobs ---")
+    for url in external_jobs:
+        print(url)
 
-    logging.info("Job Application Bot Finished")
+    # Step 2: Extract final company application pages
+    print("\n[🌐] Extracting final company application links...")
+    final_links = extract_company_site(external_jobs)
+
+    print(f"\n--- Final External Application Links ({len(final_links)} total) ---")
+    for link in final_links:
+        print(link)
+
+    logging.info("✅ Job Application Bot Finished")
 
 if __name__ == "__main__":
     main()
