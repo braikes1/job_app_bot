@@ -1,0 +1,78 @@
+workflows:
+  ios-release:
+    name: iOS Release (TestFlight)
+    max_build_duration: 60
+    environment:
+      flutter: stable
+      xcode: latest
+      cocoapods: default
+      vars:
+        BUNDLE_ID: "com.yourname.jobbot"
+        XCODE_SCHEME: "Runner"
+      groups:
+        - app_store_credentials
+    triggering:
+      events:
+        - push
+      branch_patterns:
+        - pattern: 'main'
+          include: true
+    scripts:
+      - name: Set build number
+        script: |
+          BUILD_NUMBER=$(($(app-store-connect get-latest-testflight-build-number "$BUNDLE_ID") + 1))
+          cd $CM_BUILD_DIR/mobile
+          agvtool new-version -all $BUILD_NUMBER
+
+      - name: Install dependencies
+        script: |
+          cd $CM_BUILD_DIR/mobile
+          flutter pub get
+
+      - name: Set up iOS code signing
+        script: |
+          keychain initialize
+          app-store-connect fetch-signing-files $BUNDLE_ID \
+            --type IOS_APP_STORE \
+            --create
+          keychain add-certificates
+          xcode-project use-profiles
+
+      - name: Build IPA
+        script: |
+          cd $CM_BUILD_DIR/mobile
+          flutter build ipa \
+            --release \
+            --dart-define=API_BASE_URL=$API_BASE_URL \
+            --export-options-plist=/Users/builder/export_options.plist
+
+    artifacts:
+      - mobile/build/ios/ipa/*.ipa
+      - /tmp/xcodebuild_logs/*.log
+
+    publishing:
+      app_store_connect:
+        api_key: $APP_STORE_CONNECT_PRIVATE_KEY
+        key_id: $APP_STORE_CONNECT_KEY_IDENTIFIER
+        issuer_id: $APP_STORE_CONNECT_ISSUER_ID
+        submit_to_testflight: true
+        beta_groups:
+          - "Internal Testers"
+
+  ios-debug:
+    name: iOS Debug (Device Testing)
+    max_build_duration: 30
+    environment:
+      flutter: stable
+      xcode: latest
+    scripts:
+      - name: Install dependencies
+        script: |
+          cd $CM_BUILD_DIR/mobile
+          flutter pub get
+      - name: Build iOS debug
+        script: |
+          cd $CM_BUILD_DIR/mobile
+          flutter build ios --debug --no-codesign
+    artifacts:
+      - mobile/build/ios/iphoneos/Runner.app

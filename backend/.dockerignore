@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+*.pyo
+.env
+.git
+.gitignore
+*.log
+tests/
+.pytest_cache/
+data/linkedin_session.json
+data/resumes/
