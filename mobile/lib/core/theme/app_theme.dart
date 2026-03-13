@@ -97,7 +97,7 @@ class AppTheme {
         iconTheme: const IconThemeData(color: darkTextPrimary),
       ),
 
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         color: darkCard,
         elevation: 0,
         shape: RoundedRectangleBorder(
@@ -163,7 +163,7 @@ class AppTheme {
 
       chipTheme: ChipThemeData(
         backgroundColor: darkCard,
-        selectedColor: primary.withOpacity(0.2),
+        selectedColor: primary.withValues(alpha: 0.2),
         labelStyle: GoogleFonts.inter(fontSize: 13, color: darkTextPrimary),
         side: const BorderSide(color: darkBorder),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
@@ -223,7 +223,7 @@ class AppTheme {
         iconTheme: const IconThemeData(color: lightTextPrimary),
       ),
 
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         color: lightCard,
         elevation: 0,
         shape: RoundedRectangleBorder(

@@ -15,6 +15,7 @@ env/
 
 # Environment
 .env
+**/.env
 .env.local
 .env.production
 
@@ -30,11 +31,11 @@ data/applied_jobs.json
 *.pdf
 
 # Legacy directories (deleted — prevent re-introduction)
-test/
-archieve/
-core/
-platforms/
-utils/
+/test/
+/archieve/
+/core/
+/platforms/
+/utils/
 
 # Database
 *.db

@@ -8,13 +8,13 @@ from unittest.mock import AsyncMock, patch, MagicMock
 
 
 MOCK_PROFILE = {
-    "full_name": "Bryan Raikes",
-    "email": "bryan@example.com",
-    "phone": "954-555-0000",
-    "location": "Davie, FL",
+    "full_name": "Alex Chen",
+    "email": "alex@example.com",
+    "phone": "+1 (555) 000-0000",
+    "location": "Austin, TX",
     "target_roles": ["Software Engineer", "Full Stack Developer"],
     "knowledge_base": "5 years Python, React, FastAPI, PostgreSQL",
-    "resume_text": "Bryan Raikes - Software Engineer - Python, React, FastAPI",
+    "resume_text": "Alex Chen - Software Engineer - Python, React, FastAPI",
     "extra_answers": {"citizenship": "U.S. Citizen"},
 }
 
@@ -60,9 +60,9 @@ async def test_score_job_match_returns_int():
 async def test_extract_form_fields_returns_dict():
     mock_response = MagicMock()
     mock_response.choices[0].message.content = json.dumps({
-        "input[name='email']": "bryan@example.com",
-        "#firstName": "Bryan",
-        "#lastName": "Raikes",
+        "input[name='email']": "alex@example.com",
+        "#firstName": "Alex",
+        "#lastName": "Chen",
     })
 
     sample_html = """

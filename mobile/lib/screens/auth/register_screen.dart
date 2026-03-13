@@ -90,7 +90,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 AppTextField(
                   controller: _nameCtrl,
                   label: 'Full Name',
-                  hint: 'Bryan Raikes',
+                  hint: 'Jane Smith',
                   prefixIcon: Icons.person_outline_rounded,
                   validator: (v) => v != null && v.trim().isNotEmpty ? null : 'Required',
                 ).animate(delay: 150.ms).fadeIn().slideX(begin: -0.1),

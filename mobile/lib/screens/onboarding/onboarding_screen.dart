@@ -163,7 +163,7 @@ class _OnboardingPageWidget extends StatelessWidget {
             width: 140,
             height: 140,
             decoration: BoxDecoration(
-              color: page.iconColor.withOpacity(0.12),
+              color: page.iconColor.withValues(alpha: 0.12),
               shape: BoxShape.circle,
             ),
             child: Icon(page.icon, size: 64, color: page.iconColor),

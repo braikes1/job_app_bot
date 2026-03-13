@@ -172,7 +172,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
             AppTextField(
               controller: _fullNameCtrl,
               label: 'Full Name',
-              hint: 'Bryan Raikes',
+              hint: 'Jane Smith',
               prefixIcon: Icons.person_outline_rounded,
               validator: (v) => v!.isNotEmpty ? null : 'Required',
             ),
@@ -197,7 +197,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
             AppTextField(
               controller: _locationCtrl,
               label: 'Location',
-              hint: 'Davie, FL',
+              hint: 'Austin, TX',
               prefixIcon: Icons.location_on_outlined,
             ),
 
