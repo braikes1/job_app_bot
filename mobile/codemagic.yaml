@@ -7,7 +7,7 @@ workflows:
       xcode: latest
       cocoapods: default
       vars:
-        BUNDLE_ID: "com.yourname.jobbot"
+        BUNDLE_ID: "com.jobot.app"
         XCODE_SCHEME: "Runner"
       groups:
         - app_store_credentials
