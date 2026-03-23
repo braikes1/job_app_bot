@@ -22,8 +22,7 @@ workflows:
         script: |
           LATEST=$(app-store-connect get-latest-testflight-build-number "$BUNDLE_ID" 2>/dev/null || echo "0")
           BUILD_NUMBER=$(( LATEST + 1 ))
-          cd $CM_BUILD_DIR/mobile/ios
-          agvtool new-version -all $BUILD_NUMBER
+          echo "BUILD_NUMBER=$BUILD_NUMBER" >> $CM_ENV
 
       - name: Install dependencies
         script: |
@@ -44,6 +43,7 @@ workflows:
           cd $CM_BUILD_DIR/mobile
           flutter build ipa \
             --release \
+            --build-number=$BUILD_NUMBER \
             --dart-define=API_BASE_URL=$API_BASE_URL \
             --export-options-plist=/Users/builder/export_options.plist
 
