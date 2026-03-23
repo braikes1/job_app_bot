@@ -31,6 +31,8 @@ workflows:
           flutter create . --platforms=ios
           # Set correct bundle ID (flutter create defaults to com.example.*)
           sed -i '' 's/com.example.jobBotMobile/com.jobot.app/g' ios/Runner.xcodeproj/project.pbxproj
+          # Set development team so xcode-project use-profiles can match signing profiles
+          sed -i '' 's/DEVELOPMENT_TEAM = ""/DEVELOPMENT_TEAM = 9QR7CH4M3P/g' ios/Runner.xcodeproj/project.pbxproj
 
       - name: Set up iOS code signing
         script: |
