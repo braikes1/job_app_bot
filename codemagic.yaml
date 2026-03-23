@@ -13,9 +13,6 @@ workflows:
         XCODE_SCHEME: "Runner"
       groups:
         - app_store_credentials
-      ios_signing:
-        distribution_type: app_store
-        bundle_identifier: com.jobot.app
     triggering:
       events:
         - push
@@ -49,7 +46,8 @@ workflows:
           keychain initialize
           app-store-connect fetch-signing-files $BUNDLE_ID \
             --type IOS_APP_STORE \
-            --create
+            --create \
+            --certificate-key @env:APP_STORE_CONNECT_PRIVATE_KEY
           keychain add-certificates
           xcode-project use-profiles
 
