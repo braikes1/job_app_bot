@@ -36,12 +36,12 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Install Playwright browsers (without --with-deps since deps are installed above)
 RUN playwright install chromium
 
-# Copy source
-COPY . .
+# Copy source into /app/backend/ so `from backend.xxx import` works
+COPY . ./backend/
 
 # Create necessary directories
-RUN mkdir -p data/resumes logs
+RUN mkdir -p backend/data/resumes backend/logs
 
 EXPOSE 8000
 
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "2"]
+CMD ["uvicorn", "backend.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "2"]
