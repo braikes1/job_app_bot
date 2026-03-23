@@ -34,12 +34,18 @@ workflows:
 
       - name: Set up iOS code signing
         script: |
+          echo "=== Initializing keychain ==="
           keychain initialize
+          echo "=== Fetching signing files for $BUNDLE_ID ==="
           app-store-connect fetch-signing-files $BUNDLE_ID \
             --type IOS_APP_STORE \
-            --create
+            --create \
+            --verbose
+          echo "=== Adding certificates to keychain ==="
           keychain add-certificates
-          xcode-project use-profiles
+          echo "=== Applying profiles to Xcode project ==="
+          xcode-project use-profiles --verbose
+          echo "=== Code signing setup complete ==="
 
       - name: Build IPA
         script: |
