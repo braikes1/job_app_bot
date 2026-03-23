@@ -29,6 +29,8 @@ workflows:
           cd $CM_BUILD_DIR/mobile
           flutter pub get
           flutter create . --platforms=ios
+          # Set correct bundle ID (flutter create defaults to com.example.*)
+          sed -i '' 's/com.example.jobBotMobile/com.jobot.app/g' ios/Runner.xcodeproj/project.pbxproj
 
       - name: Set up iOS code signing
         script: |
