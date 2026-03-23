@@ -32,7 +32,12 @@ workflows:
           # Set correct bundle ID (flutter create defaults to com.example.*)
           sed -i '' 's/com.example.jobBotMobile/com.jobot.app/g' ios/Runner.xcodeproj/project.pbxproj
           # Set development team so xcode-project use-profiles can match signing profiles
-          sed -i '' 's/DEVELOPMENT_TEAM = ""/DEVELOPMENT_TEAM = 9QR7CH4M3P/g' ios/Runner.xcodeproj/project.pbxproj
+          sed -i '' 's/DEVELOPMENT_TEAM = "";/DEVELOPMENT_TEAM = 9QR7CH4M3P;/g' ios/Runner.xcodeproj/project.pbxproj
+          # Verify the replacements took effect
+          echo "=== Bundle ID entries ==="
+          grep -c "com.jobot.app" ios/Runner.xcodeproj/project.pbxproj || echo "0 matches"
+          echo "=== Team ID entries ==="
+          grep -c "9QR7CH4M3P" ios/Runner.xcodeproj/project.pbxproj || echo "0 matches"
 
       - name: Set up iOS code signing
         script: |
@@ -46,9 +51,6 @@ workflows:
           app-store-connect fetch-signing-files $BUNDLE_ID \
             --type IOS_APP_STORE \
             --create \
-            --api-key "$APP_STORE_CONNECT_KEY_IDENTIFIER" \
-            --issuer-id "$APP_STORE_CONNECT_ISSUER_ID" \
-            --private-key "$APP_STORE_CONNECT_PRIVATE_KEY" \
             --verbose
           echo "=== Adding certificates to keychain ==="
           keychain add-certificates
