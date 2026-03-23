@@ -2,6 +2,8 @@ workflows:
   ios-release:
     name: iOS Release (TestFlight)
     max_build_duration: 60
+    integrations:
+      app_store_connect: App Store Connect
     environment:
       flutter: stable
       xcode: latest
@@ -14,8 +16,6 @@ workflows:
       ios_signing:
         distribution_type: app_store
         bundle_identifier: com.jobot.app
-      integrations:
-        app_store_connect: App Store Connect
     triggering:
       events:
         - push
