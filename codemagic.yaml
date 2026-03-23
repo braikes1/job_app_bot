@@ -20,8 +20,9 @@ workflows:
     scripts:
       - name: Set build number
         script: |
-          BUILD_NUMBER=$(($(app-store-connect get-latest-testflight-build-number "$BUNDLE_ID") + 1))
-          cd $CM_BUILD_DIR/mobile
+          LATEST=$(app-store-connect get-latest-testflight-build-number "$BUNDLE_ID" 2>/dev/null || echo "0")
+          BUILD_NUMBER=$(( LATEST + 1 ))
+          cd $CM_BUILD_DIR/mobile/ios
           agvtool new-version -all $BUILD_NUMBER
 
       - name: Install dependencies
