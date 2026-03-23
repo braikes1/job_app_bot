@@ -11,6 +11,11 @@ workflows:
         XCODE_SCHEME: "Runner"
       groups:
         - app_store_credentials
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: com.jobot.app
+      integrations:
+        app_store_connect: App Store Connect
     triggering:
       events:
         - push
@@ -41,24 +46,12 @@ workflows:
 
       - name: Set up iOS code signing
         script: |
-          echo "=== Checking API credentials ==="
-          echo "Key ID set: $([ -n "$APP_STORE_CONNECT_KEY_IDENTIFIER" ] && echo YES || echo NO)"
-          echo "Issuer ID set: $([ -n "$APP_STORE_CONNECT_ISSUER_ID" ] && echo YES || echo NO)"
-          echo "Private key set: $([ -n "$APP_STORE_CONNECT_PRIVATE_KEY" ] && echo YES || echo NO)"
-          echo "=== Initializing keychain ==="
           keychain initialize
-          echo "=== Fetching signing files for $BUNDLE_ID ==="
           app-store-connect fetch-signing-files $BUNDLE_ID \
             --type IOS_APP_STORE \
-            --create \
-            --verbose
-          echo "=== Adding certificates to keychain ==="
+            --create
           keychain add-certificates
-          echo "=== Installed signing identities ==="
-          security find-identity -v -p codesigning
-          echo "=== Applying profiles to Xcode project ==="
-          xcode-project use-profiles --verbose
-          echo "=== Code signing setup complete ==="
+          xcode-project use-profiles
 
       - name: Build IPA
         script: |
