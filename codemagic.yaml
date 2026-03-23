@@ -28,6 +28,7 @@ workflows:
         script: |
           cd $CM_BUILD_DIR/mobile
           flutter pub get
+          flutter create . --platforms=ios
 
       - name: Set up iOS code signing
         script: |
